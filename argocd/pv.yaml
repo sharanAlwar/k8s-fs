@@ -18,7 +18,7 @@ spec:
     readOnly: false
     volumeHandle: fs-pv
     volumeAttributes:
-      source: "\\172.31.21.229\Testing$"
+      source: "\\172.31.21.229/Testing$"
     nodeStageSecretRef:
       name: fs-secret
       namespace: dev
