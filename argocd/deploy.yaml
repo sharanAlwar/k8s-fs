@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: flask-nfs-app
-        image: 582224451511.dkr.ecr.us-east-1.amazonaws.com/testing-fs
+        image: 582224451511.dkr.ecr.us-east-1.amazonaws.com/testing-fs:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
