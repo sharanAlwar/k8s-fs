@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  flask-app:
+    build: .
+    container_name: flask-pvc-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/ubuntu/pvc-testing/file-uploads:/mnt/file-server
+    environment:
+      - FLASK_ENV=production
