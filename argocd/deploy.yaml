@@ -28,7 +28,7 @@ spec:
       volumes:
       - name: nfs-mount
         persistentVolumeClaim:
-          claimName: fs-pvc
+          claimName: nfs-pvc
 
 ---
 apiVersion: v1
