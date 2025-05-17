@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: flask-pvc  
+  template:
+    metadata:
+      labels:
+        app: flask-pvc 
+    spec:
+      containers:
+      - name: flask-nfs-app
+        image: 582224451511.dkr.ecr.us-east-1.amazonaws.com/testing-fs
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: nfs-secret
+        volumeMounts:
+        - name: nfs-mount 
+          mountPath: /mnt/file-server
+      volumes:
+      - name: nfs-mount
+        persistentVolumeClaim:
+          claimName: fs-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-pvc-svc
+  namespace: dev
+spec:
+  selector:
+    app: flask-pvc  
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
