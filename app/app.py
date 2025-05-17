@@ -1,18 +1,20 @@
-from flask import Flask, request, send_from_directory, render_template_string, redirect, url_for, jsonify
+from flask import Flask, request, send_from_directory, render_template_string, redirect, url_for, jsonify, flash
 import os
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key'  # Required for flash messages
+
 UPLOAD_DIR = "/mnt/file-server"
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    message = ""
     if request.method == 'POST':
         uploaded_file = request.files.get('file')
         if uploaded_file:
             save_path = os.path.join(UPLOAD_DIR, uploaded_file.filename)
             uploaded_file.save(save_path)
-            message = f"Uploaded: {uploaded_file.filename}"
+            flash(f"Uploaded: {uploaded_file.filename}")
+        return redirect(url_for('index'))  # ✅ Redirect to avoid resubmission
     
     try:
         files = os.listdir(UPLOAD_DIR)
@@ -21,27 +23,93 @@ def index():
 
     html = """
     <!doctype html>
-    <title>File Manager</title>
-    <h1>Files in FileShare</h1>
-    {% if message %}
-    <p><strong>{{ message }}</strong></p>
-    {% endif %}
-    <ul>
-      {% for file in files %}
-        <li>
-          {{ file }} |
-          <a href="{{ url_for('download_file', filename=file) }}">Download</a>
-        </li>
-      {% endfor %}
-    </ul>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>FileShare</title>
+        <style>
+            /* Same modern premium style as before */
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Tahoma, sans-serif;
+                background-color: #121212;
+                color: #e0e0e0;
+                padding: 40px;
+            }
+            h1, h2 {
+                color: #f5f5f5;
+            }
+            ul {
+                list-style: none;
+                padding: 0;
+            }
+            li {
+                background-color: #1e1e1e;
+                border: 1px solid #2e2e2e;
+                padding: 16px;
+                margin-bottom: 12px;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+            }
+            a {
+                color: #C0A36E;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            form {
+                margin-top: 30px;
+                background-color: #1e1e1e;
+                padding: 24px;
+                border-radius: 8px;
+                border: 1px solid #2e2e2e;
+            }
+            input[type="submit"] {
+                background-color: #C0A36E;
+                color: #000;
+                padding: 10px 20px;
+                border-radius: 6px;
+                border: none;
+                cursor: pointer;
+            }
+            input[type="submit"]:hover {
+                background-color: #a68b5a;
+            }
+            .message {
+                color: #C0A36E;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>FileShare</h1>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="message">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
 
-    <h2>Upload New File</h2>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
+        <ul>
+            {% for file in files %}
+                <li>
+                    {{ file }}
+                    <a href="{{ url_for('download_file', filename=file) }}">Download</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Upload New File</h2>
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" name="file"><br>
+            <input type="submit" value="Upload">
+        </form>
+    </body>
+    </html>
     """
-    return render_template_string(html, files=files, message=message)
+    return render_template_string(html, files=files)
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
